@@ -1,0 +1,12 @@
+kind: pipeline
+
+steps:
+- name: build
+  image: mcr.microsoft.com/dotnet/core/sdk:2.2
+  environment:
+    nuget_api_key:
+      from_secret: nuget_api_key
+  commands:
+  - dotnet pack
+  - dotnet nuget push /drone/src/SimpleDatabase/bin/Debug/SimpleDatabase.1.0.0.nupkg --api-key $nuget_api_key --source https://repository.decryptology.net/repository/Nuget/index.json
+
