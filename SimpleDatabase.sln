@@ -3,7 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.1267
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleDatabase", "SimpleDatabase\SimpleDatabase.csproj", "{1C8A1B89-04B6-4ED9-8D98-AC05EE9AFC11}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleDatabase", "SimpleDatabase\SimpleDatabase.csproj", "{1C8A1B89-04B6-4ED9-8D98-AC05EE9AFC11}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnimalDatabase", "AnimalDatabase\AnimalDatabase.csproj", "{172BCF28-1B4C-4D46-9E74-BE0667B7831A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1C8A1B89-04B6-4ED9-8D98-AC05EE9AFC11} = {1C8A1B89-04B6-4ED9-8D98-AC05EE9AFC11}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +20,10 @@ Global
 		{1C8A1B89-04B6-4ED9-8D98-AC05EE9AFC11}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C8A1B89-04B6-4ED9-8D98-AC05EE9AFC11}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C8A1B89-04B6-4ED9-8D98-AC05EE9AFC11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{172BCF28-1B4C-4D46-9E74-BE0667B7831A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{172BCF28-1B4C-4D46-9E74-BE0667B7831A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{172BCF28-1B4C-4D46-9E74-BE0667B7831A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{172BCF28-1B4C-4D46-9E74-BE0667B7831A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
