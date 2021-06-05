@@ -1,31 +1,36 @@
 ﻿using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Threading.Tasks;
 using SimpleDatabase.SQLite;
 
 namespace AnimalDatabase.Query
 {
-    public class GetAnimalsQueryHandler :  SQLiteDatabaseQueryHandlerBase<AnimalDB, GetAnimalsQuery, IList<string>>
+    public class GetAnimalsQueryHandler : 
+        SQLiteDatabaseQueryHandlerBase<GetAnimalsQuery, IList<string>>
     {
-        protected override IList<string> HandleImpl(SQLiteConnection connection, GetAnimalsQuery query)
+        public override Task<IList<string>> Handle(SQLiteConnection connection, GetAnimalsQuery databaseQuery)
         {
-            IList<string> animals = new List<string>();
-
-            using (SQLiteTransaction transaction = connection.BeginTransaction())
-            using (SQLiteCommand command = connection.CreateCommand())
+            return Task.Run(() =>
             {
-                command.CommandText = "select * from Animals where Type = @type";
-                command.Parameters.Add(new SQLiteParameter("type", query.Type));
+                IList<string> animals = new List<string>();
 
-                using (SQLiteDataReader dataReader = command.ExecuteReader())
+                using (SQLiteTransaction transaction = connection.BeginTransaction())
+                using (SQLiteCommand command = connection.CreateCommand())
                 {
-                    while (dataReader.Read())
+                    command.CommandText = "select * from Animals where Type = @type";
+                    command.Parameters.Add(new SQLiteParameter("type", databaseQuery.Type));
+
+                    using (SQLiteDataReader dataReader = command.ExecuteReader())
                     {
-                        animals.Add(dataReader["Name"].ToString());
+                        while (dataReader.Read())
+                        {
+                            animals.Add(dataReader["Name"].ToString());
+                        }
                     }
                 }
-            }
 
-            return animals;
+                return animals;
+            });
         }
     }
 }

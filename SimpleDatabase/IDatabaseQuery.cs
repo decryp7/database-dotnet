@@ -1,11 +1,13 @@
 ﻿namespace SimpleDatabase
 {
     /// <summary>
-    /// Database query
+    /// IDatabase query interface
     /// </summary>
-    /// <typeparam name="TDatabase">Database type</typeparam>
-    /// <typeparam name="TDatabaseQueryResult">Database query result type</typeparam>
-    public interface IDatabaseQuery<TDatabase, TDatabaseQueryResult>
+    /// <typeparam name="TDatabaseQuery">Database query type</typeparam>
+    /// <typeparam name="TDatabaseQueryResult">Database result type</typeparam>
+    public interface IDatabaseQuery<TDatabaseQuery, TDatabaseQueryResult>
+        where TDatabaseQuery : IDatabaseQuery<TDatabaseQuery, TDatabaseQueryResult>
     {
+        
     }
 }

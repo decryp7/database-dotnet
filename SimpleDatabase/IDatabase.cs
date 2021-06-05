@@ -1,42 +1,33 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace SimpleDatabase
 {
     /// <summary>
-    /// Database
+    /// Database interface
     /// </summary>
-    ///<typeparam name = "TDatabase" > Database type</typeparam>
-    public interface IDatabase<TDatabase> : IDisposable
-        where TDatabase : class, IDatabase<TDatabase>
+    public interface IDatabase : IDisposable
     {
         /// <summary>
-        /// Query
+        /// Query database
         /// </summary>
-        /// <typeparam name="TDatabaseQueryResult">Query result type</typeparam>
-        /// <param name="query">Query</param>
-        /// <returns>Query result</returns>
-        IObservable<TDatabaseQueryResult> Query<TDatabaseQueryResult>(
-            IDatabaseQuery<TDatabase, TDatabaseQueryResult> query);
-
-        /// <summary>
-        /// Register query handler
-        /// </summary>
-        /// <typeparam name="TDatabaseQuery">Query type</typeparam>
-        /// <param name="queryHandler">Query handler</param>
-        void Register<TDatabaseQuery>(IDatabaseQueryHandler<TDatabase, TDatabaseQuery> queryHandler);
+        /// <typeparam name="TDatabaseQuery">Database query type</typeparam>
+        /// <typeparam name="TDatabaseQueryResult">Database result type</typeparam>
+        /// <param name="databaseQuery">Database query</param>
+        /// <returns></returns>
+        Task<TDatabaseQueryResult> Execute<TDatabaseQuery, TDatabaseQueryResult>(
+            IDatabaseQuery<TDatabaseQuery, TDatabaseQueryResult> databaseQuery)
+            where TDatabaseQuery : IDatabaseQuery<TDatabaseQuery, TDatabaseQueryResult>;
     }
 
     /// <summary>
-    /// Database
+    /// Database interface
     /// </summary>
-    /// <typeparam name="TDatabase">Database type</typeparam>
-    /// <typeparam name="TConnection">Connection type</typeparam>
-    public interface IDatabase<TDatabase,TConnection> : 
-        IDatabase<TDatabase>
-        where TDatabase : class, IDatabase<TDatabase>
+    /// <typeparam name="TConnection"></typeparam>
+    public interface IDatabase<TConnection> : IDatabase
     {
         /// <summary>
-        /// Connection
+        /// Get the database connection
         /// </summary>
         TConnection Connection { get; }
     }

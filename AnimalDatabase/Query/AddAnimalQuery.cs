@@ -1,9 +1,9 @@
-﻿using SimpleDatabase;
-using SimpleDatabase.SanityCheck;
+﻿using GuardLibrary;
+using SimpleDatabase;
 
 namespace AnimalDatabase.Query
 {
-    public class AddAnimalQuery : IDatabaseQuery<AnimalDB, int>
+    public class AddAnimalQuery : IDatabaseQuery<AddAnimalQuery, int>
     {
         public string Type { get; }
         public string Animal { get; }

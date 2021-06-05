@@ -4,115 +4,59 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using SimpleDatabase.SanityCheck;
+using System.Threading.Tasks;
 
 namespace SimpleDatabase
 {
-    public abstract class Database<TDatabase, TConnection> : DisposableObject, 
-        IDatabase<TDatabase, TConnection>
-        where TDatabase : class, IDatabase<TDatabase>
+    public abstract class Database<TConnection> : DisposableObject, IDatabase<TConnection>
     {
-        private TConnection connection;
-        private bool isInitialized;
-        private readonly object gate;
-        private readonly IDictionary<Type, IDatabaseQueryHandler<TDatabase>> queryHandlers;
+        private readonly IDictionary<Tuple<Type, Type, Type>, IDatabaseQueryHandler> databaseQueryHandlers =
+            new Dictionary<Tuple<Type, Type, Type>, IDatabaseQueryHandler>();
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0")]
-        protected Database(IEnumerable<IDatabaseQueryHandler<TDatabase>> handlers)
+        protected Database(IEnumerable<IDatabaseQueryHandler> dbQueryhandlers)
         {
-            queryHandlers = new Dictionary<Type, IDatabaseQueryHandler<TDatabase>>();
-            gate = new object();
-
-            foreach (IDatabaseQueryHandler<TDatabase> handler in handlers)
+            foreach (IDatabaseQueryHandler databaseQueryHandler in dbQueryhandlers)
             {
-                Type queryType = FindQueryHandlerType(handler.GetType());
-
-                RegisterQueryHandler(handler, queryType);
-            }
-
-            Disposable.Create(() =>
-            {
-                foreach (IDatabaseQueryHandler<TDatabase> queryHandler in queryHandlers.Values)
+                Tuple<Type, Type, Type> queryType = FindQueryHandlerType(databaseQueryHandler.GetType());
+                if (queryType != null)
                 {
-                    queryHandler.Dispose();
+                    databaseQueryHandlers[queryType] = databaseQueryHandler;
                 }
-                queryHandlers.Clear();
-            }).DisposeWith(this);
+            }
         }
 
-        private Type FindQueryHandlerType(Type baseType)
+        private Tuple<Type, Type, Type> FindQueryHandlerType(Type baseType)
         {
-            Type queryType = baseType.GenericTypeArguments.FirstOrDefault(type => type.GetInterfaces().Any(x =>
+            Type queryType = baseType.GetInterfaces().FirstOrDefault(x =>
                 x.IsGenericType &&
-                x.GetGenericTypeDefinition() == typeof(IDatabaseQuery<,>)));
+                x.GetGenericTypeDefinition() == typeof(IDatabaseQueryHandler<,,>));
 
-            if (queryType == null)
+            if (queryType != null)
             {
-                return FindQueryHandlerType(baseType.BaseType);
+                return new Tuple<Type, Type, Type>(queryType.GenericTypeArguments[0], queryType.GenericTypeArguments[1],
+                    queryType.GenericTypeArguments[2]);
             }
 
-            return queryType;
+            return FindQueryHandlerType(baseType.BaseType);
         }
 
-        public TConnection Connection
+        public async Task<TDatabaseQueryResult> Execute<TDatabaseQuery, TDatabaseQueryResult>(
+            IDatabaseQuery<TDatabaseQuery, TDatabaseQueryResult> databaseQuery)
+            where TDatabaseQuery : IDatabaseQuery<TDatabaseQuery, TDatabaseQueryResult>
         {
-            get
+            if (databaseQueryHandlers.TryGetValue(
+                new Tuple<Type, Type, Type>(typeof(TConnection), typeof(TDatabaseQuery), typeof(TDatabaseQueryResult)),
+                out IDatabaseQueryHandler databaseQueryHandler))
             {
-                lock (gate)
-                {
-                    if (!isInitialized)
-                    {
-                        connection = Initialize();
-                        isInitialized = true;
-                    }
-
-                    return connection;
-                }
+                return await
+                    ((IDatabaseQueryHandler<TConnection, TDatabaseQuery, TDatabaseQueryResult>) databaseQueryHandler)
+                    .Handle(Connection,
+                        (TDatabaseQuery) databaseQuery);
             }
+
+            return default(TDatabaseQueryResult);
         }
 
-        protected abstract TConnection Initialize();
-
-        public IObservable<TDatabaseQueryResult> Query<TDatabaseQueryResult>(IDatabaseQuery<TDatabase, TDatabaseQueryResult> query)
-        {
-            return Observable.Create<TDatabaseQueryResult>(observer =>
-            {
-                Type queryType = query.GetType();
-
-                if (!queryHandlers.TryGetValue(queryType, out IDatabaseQueryHandler<TDatabase> queryHandler))
-                {
-                    throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
-                        "{0} is unable to handle {1}.", this.GetType().GetFriendlyName(), queryType.Name));
-                }
-
-                observer.OnNext((TDatabaseQueryResult)queryHandler.Handle(Connection, query));
-                observer.OnCompleted();
-                return Disposable.Empty;
-            });
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0")]
-        public void Register<TDatabaseQuery>(IDatabaseQueryHandler<TDatabase, TDatabaseQuery> queryHandler)
-        {
-            Guard.Ensure(queryHandler, nameof(queryHandler)).IsNotNull();
-
-            Type queryType = typeof(TDatabaseQuery);
-
-            RegisterQueryHandler(queryHandler, queryType);
-        }
-
-        private void RegisterQueryHandler(IDatabaseQueryHandler<TDatabase> queryHandler, Type queryType)
-        {
-            queryHandler.Database = this as TDatabase;
-
-            if (queryHandlers.ContainsKey(queryType))
-            {
-                queryHandlers[queryType] = queryHandler;
-            }
-            else
-            {
-                queryHandlers.Add(queryType, queryHandler);
-            }
-        }
+        public abstract TConnection Connection { get; }
     }
 }

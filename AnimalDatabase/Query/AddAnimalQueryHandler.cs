@@ -1,27 +1,31 @@
 ﻿using System.Data.SQLite;
+using System.Threading.Tasks;
 using SimpleDatabase.SQLite;
 
 namespace AnimalDatabase.Query
 {
     public class AddAnimalQueryHandler : 
-        SQLiteDatabaseQueryHandlerBase<AnimalDB, AddAnimalQuery, int>
+        SQLiteDatabaseQueryHandlerBase<AddAnimalQuery, int>
     {
-        protected override int HandleImpl(SQLiteConnection connection, AddAnimalQuery query)
+        public override Task<int> Handle(SQLiteConnection connection, AddAnimalQuery databaseQuery)
         {
-            int result = 0;
-
-            using (SQLiteTransaction transaction = connection.BeginTransaction())
-            using (SQLiteCommand command = connection.CreateCommand())
+            return Task.Run(() =>
             {
-                command.CommandText = "insert into Animals values (@type, @animal)";
-                command.Parameters.Add(new SQLiteParameter("type", query.Type));
-                command.Parameters.Add(new SQLiteParameter("animal", query.Animal));
+                int result = 0;
 
-                result += command.ExecuteNonQuery();
-                transaction.Commit();
-            }
+                using (SQLiteTransaction transaction = connection.BeginTransaction())
+                using (SQLiteCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = "insert into Animals values (@type, @animal)";
+                    command.Parameters.Add(new SQLiteParameter("type", databaseQuery.Type));
+                    command.Parameters.Add(new SQLiteParameter("animal", databaseQuery.Animal));
 
-            return result;
+                    result += command.ExecuteNonQuery();
+                    transaction.Commit();
+                }
+
+                return result;
+            });
         }
     }
 }

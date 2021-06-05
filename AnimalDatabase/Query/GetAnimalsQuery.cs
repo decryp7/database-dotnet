@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using GuardLibrary;
 using SimpleDatabase;
-using SimpleDatabase.SanityCheck;
+
 
 namespace AnimalDatabase.Query
 {
-    public class GetAnimalsQuery : IDatabaseQuery<AnimalDB, IList<string>>
+    public class GetAnimalsQuery : IDatabaseQuery<GetAnimalsQuery, IList<string>>
     {
         public string Type { get; }
 

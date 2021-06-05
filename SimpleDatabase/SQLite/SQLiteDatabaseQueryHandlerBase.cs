@@ -1,18 +1,12 @@
 ﻿using System.Data.SQLite;
+using System.Threading.Tasks;
 
 namespace SimpleDatabase.SQLite
 {
-    public abstract class
-        SQLiteDatabaseQueryHandlerBase<TDatabase, TDatabaseQuery, TDatabaseQueryResult> :
-            DatabaseQueryHandlerBase<TDatabase, SQLiteConnection, TDatabaseQuery, TDatabaseQueryResult>
-        where TDatabaseQuery : IDatabaseQuery<TDatabase, TDatabaseQueryResult>
-        where TDatabase : class, IDatabase<TDatabase>
+    public abstract class SQLiteDatabaseQueryHandlerBase<TDatabaseQuery, TDatabaseQueryResult> : 
+        IDatabaseQueryHandler<SQLiteConnection, TDatabaseQuery, TDatabaseQueryResult>
+        where TDatabaseQuery : IDatabaseQuery<TDatabaseQuery, TDatabaseQueryResult>
     {
-        public override TDatabaseQueryResult Handle(SQLiteConnection connection, TDatabaseQuery query)
-        {
-            return HandleImpl(connection, query);
-        }
-
-        protected abstract TDatabaseQueryResult HandleImpl(SQLiteConnection connection, TDatabaseQuery query);
+        public abstract Task<TDatabaseQueryResult> Handle(SQLiteConnection connection, TDatabaseQuery databaseQuery);
     }
 }

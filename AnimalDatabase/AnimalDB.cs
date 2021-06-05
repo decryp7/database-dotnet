@@ -7,29 +7,11 @@ using SimpleDatabase.SQLite;
 
 namespace AnimalDatabase
 {
-    public class AnimalDB : SQLiteDatabase<AnimalDB>
+    public class AnimalDB : SQLiteDatabaseBase
     {
-        public AnimalDB(IEnumerable<IDatabaseQueryHandler<AnimalDB>> handlers) : base(handlers)
+        public AnimalDB(string filePath, IEnumerable<IDatabaseQueryHandler> dbQueryhandlers) 
+            : base(filePath, dbQueryhandlers)
         {
-        }
-
-        protected override SQLiteConnection Initialize()
-        {
-            SQLiteConnection connection = base.Initialize();
-
-            using (SQLiteTransaction transaction = connection.BeginTransaction())
-            using (SQLiteCommand command = connection.CreateCommand())
-            {
-                command.CommandText = FormattableString.Invariant($"create table if not exists Animals (Type, Name)");
-                command.ExecuteNonQuery();
-
-                command.CommandText = "create index Animals_TypeIndex on Animals (Type)";
-                command.ExecuteNonQuery();
-
-                transaction.Commit();
-            }
-
-            return connection;
         }
     }
 }

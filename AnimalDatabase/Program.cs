@@ -10,25 +10,34 @@ namespace AnimalDatabase
     {
         static void Main(string[] args)
         {
-            IDatabase<AnimalDB> animalDB =
-                new AnimalDB(new List<IDatabaseQueryHandler<AnimalDB>>
+            IDatabase animalDB =
+                new AnimalDB("Animals.db",new List<IDatabaseQueryHandler>
                 {
+                    new SetupQueryHandler(),
                     new AddAnimalQueryHandler(),
                     new GetAnimalsQueryHandler()
                 });
 
-            animalDB.Query(new AddAnimalQuery("mammals", "cat")).Wait();
-            animalDB.Query(new AddAnimalQuery("mammals", "bat")).Wait();
-            animalDB.Query(new AddAnimalQuery("mammals", "elephant")).Wait();
-            animalDB.Query(new AddAnimalQuery("mammals", "rabbit")).Wait();
+            if (!animalDB.Execute(new SetupQuery()).GetAwaiter().GetResult())
+            {
+                Console.WriteLine("Unable to setup database!");
+            }
+            else
+            {
+                animalDB.Execute(new AddAnimalQuery("mammals", "cat")).Wait();
+                animalDB.Execute(new AddAnimalQuery("mammals", "bat")).Wait();
+                animalDB.Execute(new AddAnimalQuery("mammals", "elephant")).Wait();
+                animalDB.Execute(new AddAnimalQuery("mammals", "rabbit")).Wait();
 
-            animalDB.Query(new AddAnimalQuery("birds", "chicken")).Wait();
-            animalDB.Query(new AddAnimalQuery("birds", "falcon")).Wait();
-            animalDB.Query(new AddAnimalQuery("birds", "flamingo")).Wait();
-            animalDB.Query(new AddAnimalQuery("birds", "ostrich")).Wait();
+                animalDB.Execute(new AddAnimalQuery("birds", "chicken")).Wait();
+                animalDB.Execute(new AddAnimalQuery("birds", "falcon")).Wait();
+                animalDB.Execute(new AddAnimalQuery("birds", "flamingo")).Wait();
+                animalDB.Execute(new AddAnimalQuery("birds", "ostrich")).Wait();
 
-            Console.WriteLine("Mammals: "+ string.Join(", ", animalDB.Query(new GetAnimalsQuery("mammals")).Wait()));
-            Console.WriteLine("Birds: "+ string.Join(", ", animalDB.Query(new GetAnimalsQuery("birds")).Wait()));
+                Console.WriteLine("Mammals: " +
+                                  string.Join(", ", animalDB.Execute(new GetAnimalsQuery("mammals")).GetAwaiter().GetResult()));
+                Console.WriteLine("Birds: " + string.Join(", ", animalDB.Execute(new GetAnimalsQuery("birds")).GetAwaiter().GetResult()));
+            }
 
             Console.Write("\nPress any key to exit...");
             Console.ReadKey(true);
