@@ -7,6 +7,7 @@ steps:
     nuget_api_key:
       from_secret: nuget_api_key
   commands:
+  - dotnet nuget add source https://repository.decryptology.net/repository/Nuget/ -n decryptology.net
   - dotnet pack
   - dotnet nuget push /drone/src/SimpleDatabase/bin/Debug/SimpleDatabase.1.0.0.nupkg --api-key $nuget_api_key --source https://repository.decryptology.net/repository/Nuget/index.json
 
