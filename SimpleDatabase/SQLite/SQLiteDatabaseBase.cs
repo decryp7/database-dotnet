@@ -40,6 +40,7 @@ namespace SimpleDatabase.SQLite
         {
             SQLiteConnectionStringBuilder connectionStringBuilder = new SQLiteConnectionStringBuilder
             {
+                ForeignKeys = true,
                 DataSource = filePath,
                 //Refer to https://blog.devart.com/increasing-sqlite-performance.html
                 JournalMode = SQLiteJournalModeEnum.Memory,
