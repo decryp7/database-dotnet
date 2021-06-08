@@ -9,5 +9,5 @@ steps:
   commands:
   - dotnet nuget add source https://repository.decryptology.net/repository/Nuget/ -n decryptology.net
   - dotnet pack
-  - dotnet nuget push /drone/src/SimpleDatabase/bin/Debug/SimpleDatabase.2.0.1.nupkg --api-key $nuget_api_key --source https://repository.decryptology.net/repository/Nuget/index.json
+  - dotnet nuget push /drone/src/SimpleDatabase/bin/Debug/SimpleDatabase.2.0.2.nupkg --api-key $nuget_api_key --source https://repository.decryptology.net/repository/Nuget/index.json
 

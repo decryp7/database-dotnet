@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Threading.Tasks;
 using GuardLibrary;
 
 namespace SimpleDatabase.SQLite
@@ -7,9 +9,6 @@ namespace SimpleDatabase.SQLite
     public abstract class SQLiteDatabaseBase : Database<SQLiteConnection>
     {
         private readonly string filePath;
-        private SQLiteConnection connection;
-        private bool isInitialized;
-        private readonly object gate = new object();
 
         protected SQLiteDatabaseBase(string filePath, IEnumerable<IDatabaseQueryHandler> dbQueryhandlers) : base(dbQueryhandlers)
         {
@@ -17,26 +16,29 @@ namespace SimpleDatabase.SQLite
             this.filePath = filePath;
         }
 
-        public override SQLiteConnection Connection
+        public override SQLiteConnection Connection => Connect();
+
+        public override async Task<TDatabaseQueryResult> Execute<TDatabaseQuery, TDatabaseQueryResult>(IDatabaseQuery<TDatabaseQuery, TDatabaseQueryResult> databaseQuery)
         {
-            get
+            if (DatabaseQueryHandlers.TryGetValue(
+                new Tuple<Type, Type, Type>(typeof(SQLiteConnection), typeof(TDatabaseQuery), typeof(TDatabaseQueryResult)),
+                out IDatabaseQueryHandler databaseQueryHandler))
             {
-                lock (gate)
+                using (SQLiteConnection connection = Connection)
                 {
-                    if (isInitialized)
-                    {
-                        return connection;
-                    }
-
-                    Connect();
-                    isInitialized = true;
-
-                    return connection;
+                    TDatabaseQueryResult result = await
+                        ((IDatabaseQueryHandler<SQLiteConnection, TDatabaseQuery, TDatabaseQueryResult>)
+                            databaseQueryHandler)
+                        .Handle(connection,
+                            (TDatabaseQuery) databaseQuery);
+                    return result;
                 }
             }
+
+            return default(TDatabaseQueryResult);
         }
 
-        private void Connect()
+        private SQLiteConnection Connect()
         {
             SQLiteConnectionStringBuilder connectionStringBuilder = new SQLiteConnectionStringBuilder
             {
@@ -54,9 +56,10 @@ namespace SimpleDatabase.SQLite
             connectionStringBuilder.Add("PRAGMA locking_mode", "EXCLUSIVE");
 
             string connectionString = connectionStringBuilder.ToString();
-            connection = new SQLiteConnection(connectionString);
+            SQLiteConnection connection = new SQLiteConnection(connectionString);
             connection.Open();
-            connection.DisposeWith(this);
+
+            return connection;
         }
     }
 }

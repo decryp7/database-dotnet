@@ -10,7 +10,7 @@ namespace SimpleDatabase
 {
     public abstract class Database<TConnection> : DisposableObject, IDatabase<TConnection>
     {
-        private readonly IDictionary<Tuple<Type, Type, Type>, IDatabaseQueryHandler> databaseQueryHandlers =
+        protected readonly IDictionary<Tuple<Type, Type, Type>, IDatabaseQueryHandler> DatabaseQueryHandlers =
             new Dictionary<Tuple<Type, Type, Type>, IDatabaseQueryHandler>();
 
         protected Database(IEnumerable<IDatabaseQueryHandler> dbQueryhandlers)
@@ -20,7 +20,7 @@ namespace SimpleDatabase
                 Tuple<Type, Type, Type> queryType = FindQueryHandlerType(databaseQueryHandler.GetType());
                 if (queryType != null)
                 {
-                    databaseQueryHandlers[queryType] = databaseQueryHandler;
+                    DatabaseQueryHandlers[queryType] = databaseQueryHandler;
                 }
             }
         }
@@ -40,11 +40,11 @@ namespace SimpleDatabase
             return FindQueryHandlerType(baseType.BaseType);
         }
 
-        public async Task<TDatabaseQueryResult> Execute<TDatabaseQuery, TDatabaseQueryResult>(
+        public virtual async Task<TDatabaseQueryResult> Execute<TDatabaseQuery, TDatabaseQueryResult>(
             IDatabaseQuery<TDatabaseQuery, TDatabaseQueryResult> databaseQuery)
             where TDatabaseQuery : IDatabaseQuery<TDatabaseQuery, TDatabaseQueryResult>
         {
-            if (databaseQueryHandlers.TryGetValue(
+            if (DatabaseQueryHandlers.TryGetValue(
                 new Tuple<Type, Type, Type>(typeof(TConnection), typeof(TDatabaseQuery), typeof(TDatabaseQueryResult)),
                 out IDatabaseQueryHandler databaseQueryHandler))
             {
