@@ -31,6 +31,14 @@ namespace SimpleDatabase.SQLite
                             databaseQueryHandler)
                         .Handle(connection,
                             (TDatabaseQuery) databaseQuery);
+
+                    //https://sqlite.org/lang_analyze.html
+                    using (SQLiteCommand command = connection.CreateCommand())
+                    {
+                        command.CommandText = "PRAGMA analysis_limit=400;PRAGMA optimize;";
+                        command.ExecuteNonQuery();
+                    }
+
                     return result;
                 }
             }
