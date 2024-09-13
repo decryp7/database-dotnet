@@ -2,7 +2,7 @@ kind: pipeline
 
 steps:
 - name: build
-  image: mcr.microsoft.com/dotnet/sdk:8.0
+  image: mcr.microsoft.com/dotnet/sdk:9.0
   environment:
     nuget_api_key:
       from_secret: nuget_api_key
